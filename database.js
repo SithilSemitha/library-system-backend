@@ -10,26 +10,38 @@ const pool = createPool({
     queueLimit: 0
 });
 
+// Get user by ID
 function getUserById(uid, callback) {
     pool.query(
         'SELECT * FROM users WHERE uid = ?',
         [uid],
         (err, results) => {
-            if (err) {
-                return callback(err, null);
-            }
+            if (err) return callback(err, null);
             callback(null, results);
         }
     );
 }
 
+// Get all users
 function getAllUsers(callback) {
     pool.query(
-        'SELECT * FROM users',  
+        'SELECT * FROM users',
         (err, results) => {
-            if (err) {
-                return callback(err, null);
-            }
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+// Create new user
+function createUser(user, callback) {
+    const { uname, password, utype } = user;
+
+    pool.query(
+        'INSERT INTO users (uname, password, utype) VALUES (?, ?, ?)',
+        [uname, password, utype],
+        (err, results) => {
+            if (err) return callback(err, null);
             callback(null, results);
         }
     );
@@ -37,5 +49,6 @@ function getAllUsers(callback) {
 
 module.exports = {
     getUserById,
-    getAllUsers
+    getAllUsers,
+    createUser
 };
