@@ -1,22 +1,30 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+
 const app = express();
 const PORT = 3000;
 
-app.use(express.json()); // to parse JSON bodies
+app.use(express.json());
 
-const { getUserById, getAllUsers, createUser } = require('./database');
+const {
+    getUserById,
+    getAllUsers,
+    getUserByUsername,
+    createUser
+} = require('./database');
 
 // Get user by ID
 app.get('/user/:uid', (req, res) => {
     const uid = req.params.uid;
 
-    getUserById(uid, (err, userdata) => {
+    getUserById(uid, (err, users) => {
         if (err) return res.status(500).json({ error: err.message });
 
-        if (userdata.length === 0) return res.status(404).json({ message: 'Invalid User ID' });
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Invalid User ID' });
+        }
 
-        res.json(userdata);
+        res.json(users[0]);
     });
 });
 
@@ -28,7 +36,7 @@ app.get('/user', (req, res) => {
     });
 });
 
-// Sign Up (Create new user)
+// Signup
 app.post('/signup', async (req, res) => {
     const { uname, password, utype } = req.body;
 
@@ -37,7 +45,6 @@ app.post('/signup', async (req, res) => {
     }
 
     try {
-        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         createUser({ uname, password: hashedPassword, utype }, (err, result) => {
@@ -58,6 +65,40 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// Login
+app.post('/login', async (req, res) => {
+    const { uname, password } = req.body;
+
+    if (!uname || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
+
+    getUserByUsername(uname, async (err, users) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (users.length === 0) {
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+
+        const user = users[0];
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+
+        res.json({
+            message: 'Login successful',
+            user: {
+                uid: user.uid,
+                uname: user.uname,
+                utype: user.utype
+            }
+        });
+    });
+});
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

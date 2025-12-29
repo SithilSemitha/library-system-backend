@@ -33,7 +33,19 @@ function getAllUsers(callback) {
     );
 }
 
-// Create new user
+// Get user by username (for login)
+function getUserByUsername(uname, callback) {
+    pool.query(
+        'SELECT * FROM users WHERE uname = ?',
+        [uname],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+// Create new user (signup)
 function createUser(user, callback) {
     const { uname, password, utype } = user;
 
@@ -50,5 +62,6 @@ function createUser(user, callback) {
 module.exports = {
     getUserById,
     getAllUsers,
+    getUserByUsername,
     createUser
 };
