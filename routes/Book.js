@@ -1,7 +1,30 @@
 const express = require('express');
 const router = express.Router();
 
-const {getBooks, getBooksById, createBook, updateBook, deleteBook} = require('../database');
+const {getBooks, getBooksById, createBook, updateBook, deleteBook, searchBooks} = require('../database');
+
+//search Books
+router.get('/search', (req, res) => {
+    const filters = {
+        title: req.query.title,
+        author: req.query.author,
+        category: req.query.category,
+        isbn: req.query.isbn
+    };
+
+    searchBooks(filters, (err, books) => {
+        if (err) {
+            return res.status(500).send('Error searching books');
+        }
+
+        if (books.length === 0) {
+            return res.status(404).send('No books found');
+        }
+
+        res.json(books);
+    });
+});
+
 
 //getBOOKS 
 router.get('/', (req, res) => {
@@ -77,6 +100,7 @@ router.delete('/:bookID', (req, res) => {
     }
     );
 });
+
 
 
 module.exports = router;
