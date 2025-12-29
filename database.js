@@ -120,6 +120,37 @@ function deleteBook(bookId, callback) {
     );
 }  
 
+function searchBooks(filters, callback) {
+    let sql = 'SELECT * FROM books WHERE 1=1';
+    const values = [];
+
+    if (filters.title) {
+        sql += ' AND title LIKE ?';
+        values.push(`%${filters.title}%`);
+    }
+
+    if (filters.author) {
+        sql += ' AND author LIKE ?';
+        values.push(`%${filters.author}%`);
+    }
+
+    if (filters.category) {
+        sql += ' AND category LIKE ?';
+        values.push(`%${filters.category}%`);
+    }
+
+    if (filters.isbn) {
+        sql += ' AND isbn = ?';
+        values.push(filters.isbn);
+    }
+
+    pool.query(sql, values, (err, results) => {
+        if (err) return callback(err, null);
+        callback(null, results);
+    });
+}
+
+
 module.exports = {
     getUserById,
     getAllUsers,
@@ -129,5 +160,6 @@ module.exports = {
     getBooksById,
     createBook,
     updateBook,
-    deleteBook
+    deleteBook,
+    searchBooks
 };
