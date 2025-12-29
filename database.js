@@ -1,4 +1,5 @@
 const { createPool } = require('mysql2');
+const { get } = require('./routes/User');
 
 const pool = createPool({
     host: 'localhost',
@@ -59,9 +60,33 @@ function createUser(user, callback) {
     );
 }
 
+
+function getBooks(callback) {
+    pool.query(
+        'SELECT * FROM books',  
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+)};
+
+function getBooksById(bid, callback) {
+    pool.query(
+        'SELECT * FROM books WHERE bookID = ?',
+        [bid],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+
 module.exports = {
     getUserById,
     getAllUsers,
     getUserByUsername,
-    createUser
+    createUser,
+    getBooks,
+    getBooksById
 };
