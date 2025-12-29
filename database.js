@@ -81,6 +81,44 @@ function getBooksById(bid, callback) {
     );
 }
 
+function createBook(book, callback) {
+    const { title, author, isbn, category, copies_total, copies_available } = book;
+
+    pool.query(
+        'INSERT INTO books (title, author, isbn, category, copies_total, copies_available) VALUES (?, ?, ?, ?, ?, ?)',
+        [title, author, isbn, category, copies_total, copies_available],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+
+function updateBook(bookId, book, callback) {
+    const { title, author, isbn, category, copies_total, copies_available } = book;
+
+    pool.query(
+        'UPDATE books SET title = ?, author = ?, isbn = ?, category = ?, copies_total = ?, copies_available = ? WHERE bookID = ?',
+        [title, author, isbn, category, copies_total, copies_available, bookId],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+
+function deleteBook(bookId, callback) {
+    pool.query(
+        'DELETE FROM books WHERE bookID = ?',
+        [bookId],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}  
 
 module.exports = {
     getUserById,
@@ -88,5 +126,8 @@ module.exports = {
     getUserByUsername,
     createUser,
     getBooks,
-    getBooksById
+    getBooksById,
+    createBook,
+    updateBook,
+    deleteBook
 };
