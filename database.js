@@ -150,6 +150,53 @@ function searchBooks(filters, callback) {
     });
 }
 
+// TRANSACTIONS
+
+function getTransactions(callback) {
+    pool.query(
+        'SELECT * FROM transactions',
+        (err, results) => {
+            if (err) return callback(err, null);   
+            callback(null, results);
+        }
+    );
+}
+
+function getTransactionsForUser(uid, callback) {
+    pool.query(
+        'SELECT * FROM transactions WHERE uid = ?',
+        [uid],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+function getTransactionsByBookId(bookID, callback) {
+    pool.query(
+        'SELECT * FROM transactions WHERE bookID = ?',
+        [bookID],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+function createTransaction(transaction, callback) {
+    const { uid, bookID, issue_date, return_date, status } = transaction;
+    pool.query(
+        'INSERT INTO transactions (uid, bookID, issue_date, return_date, status) VALUES (?, ?, ?, ?, ?)',
+        [uid, bookID, issue_date, return_date, status],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }  
+    );
+}
+
+
 
 module.exports = {
     getUserById,
@@ -161,5 +208,10 @@ module.exports = {
     createBook,
     updateBook,
     deleteBook,
-    searchBooks
+    searchBooks,
+    getTransactionsForUser,
+    createTransaction,
+    getTransactionsByBookId,
+    getTransactions,
+    updateTransaction
 };
