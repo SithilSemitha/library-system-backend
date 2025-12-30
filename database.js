@@ -250,6 +250,48 @@ function updateTransaction(transaction_id, transaction, callback) {
 }
 
 
+// RESERVATIONS
+
+function createReservation(reservation, callback) {
+    const { uid, book_id, reservation_date, status } = reservation;
+
+    // Format date to MySQL TIMESTAMP format
+    const date = reservation_date
+        ? new Date(reservation_date).toISOString().slice(0, 19).replace('T', ' ')
+        : new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    const reservationStatus = status || 'ACTIVE';
+
+    const query = `
+        INSERT INTO reservations (uid, book_id, reservation_date, status)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    pool.query(query, [uid, book_id, date, reservationStatus], (err, results) => {
+        if (err) return callback(err);
+        // Return the inserted reservation ID
+        callback(null, results.insertId);
+    });
+}
+
+function getReservationsForUser(uid, callback) {
+    const query = `SELECT * FROM reservations WHERE uid = ? ORDER BY reservation_date DESC`;
+
+    pool.query(query, [uid], (err, results) => {
+        if (err) return callback(err);
+        callback(null, results);
+    });
+}
+
+function deleteReservation(reservationId, callback) {
+    const query = `DELETE FROM reservations WHERE reservation_id = ?`;
+
+    pool.query(query, [reservationId], (err, results) => {
+        if (err) return callback(err);
+        callback(null, results);
+    });
+}
+
 module.exports = {
     getUserById,
     getAllUsers,
@@ -265,5 +307,8 @@ module.exports = {
     createTransaction,
     getTransactionsByBookId,
     getTransactions,
-    updateTransaction
+    updateTransaction,
+    createReservation,
+    getReservationsForUser,
+    deleteReservation
 };
