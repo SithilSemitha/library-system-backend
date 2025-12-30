@@ -60,20 +60,10 @@ function createUser(user, callback) {
     );
 }
 
-
+// GET all books
 function getBooks(callback) {
     pool.query(
-        'SELECT * FROM books',  
-        (err, results) => {
-            if (err) return callback(err, null);
-            callback(null, results);
-        }
-)};
-
-function getBooksById(bid, callback) {
-    pool.query(
-        'SELECT * FROM books WHERE bookID = ?',
-        [bid],
+        'SELECT * FROM books',
         (err, results) => {
             if (err) return callback(err, null);
             callback(null, results);
@@ -81,45 +71,86 @@ function getBooksById(bid, callback) {
     );
 }
 
-function createBook(book, callback) {
-    const { title, author, isbn, category, copies_total, copies_available } = book;
-
+// GET book by ID
+function getBooksById(bookId, callback) {
     pool.query(
-        'INSERT INTO books (title, author, isbn, category, copies_total, copies_available) VALUES (?, ?, ?, ?, ?, ?)',
-        [title, author, isbn, category, copies_total, copies_available],
-        (err, results) => {
-            if (err) return callback(err, null);
-            callback(null, results);
-        }
-    );
-}
-
-
-function updateBook(bookId, book, callback) {
-    const { title, author, isbn, category, copies_total, copies_available } = book;
-
-    pool.query(
-        'UPDATE books SET title = ?, author = ?, isbn = ?, category = ?, copies_total = ?, copies_available = ? WHERE bookID = ?',
-        [title, author, isbn, category, copies_total, copies_available, bookId],
-        (err, results) => {
-            if (err) return callback(err, null);
-            callback(null, results);
-        }
-    );
-}
-
-
-function deleteBook(bookId, callback) {
-    pool.query(
-        'DELETE FROM books WHERE bookID = ?',
+        'SELECT * FROM books WHERE book_id = ?',
         [bookId],
         (err, results) => {
             if (err) return callback(err, null);
             callback(null, results);
         }
     );
-}  
+}
 
+// CREATE book
+function createBook(book, callback) {
+    const {
+        title,
+        author,
+        isbn,
+        category_id,
+        copies_total,
+        copies_available
+    } = book;
+
+    pool.query(
+        `INSERT INTO books 
+        (title, author, isbn, category_id, copies_total, copies_available) 
+        VALUES (?, ?, ?, ?, ?, ?)`,
+        [title, author, isbn, category_id, copies_total, copies_available],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+// UPDATE book
+function updateBook(bookId, book, callback) {
+    const {
+        title,
+        author,
+        isbn,
+        category_id,
+        copies_total,
+        copies_available
+    } = book;
+
+    pool.query(
+        `UPDATE books 
+         SET title = ?, author = ?, isbn = ?, category_id = ?, 
+             copies_total = ?, copies_available = ?
+         WHERE book_id = ?`,
+        [
+            title,
+            author,
+            isbn,
+            category_id,
+            copies_total,
+            copies_available,
+            bookId
+        ],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+// DELETE book
+function deleteBook(bookId, callback) {
+    pool.query(
+        'DELETE FROM books WHERE book_id = ?',
+        [bookId],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+// SEARCH books
 function searchBooks(filters, callback) {
     let sql = 'SELECT * FROM books WHERE 1=1';
     const values = [];
@@ -134,9 +165,9 @@ function searchBooks(filters, callback) {
         values.push(`%${filters.author}%`);
     }
 
-    if (filters.category) {
-        sql += ' AND category LIKE ?';
-        values.push(`%${filters.category}%`);
+    if (filters.category_id) {
+        sql += ' AND category_id = ?';
+        values.push(filters.category_id);
     }
 
     if (filters.isbn) {
@@ -151,62 +182,73 @@ function searchBooks(filters, callback) {
 }
 
 // TRANSACTIONS
-
+// Get all transactions
 function getTransactions(callback) {
     pool.query(
         'SELECT * FROM transactions',
         (err, results) => {
-            if (err) return callback(err, null);   
+            if (err) return callback(err);
             callback(null, results);
         }
     );
 }
 
+// Get transactions for a specific user
 function getTransactionsForUser(uid, callback) {
     pool.query(
         'SELECT * FROM transactions WHERE uid = ?',
         [uid],
         (err, results) => {
-            if (err) return callback(err, null);
+            if (err) return callback(err);
             callback(null, results);
         }
     );
 }
 
-function getTransactionsByBookId(bookID, callback) {
+// Get transactions for a specific book
+function getTransactionsByBookId(book_id, callback) {
     pool.query(
-        'SELECT * FROM transactions WHERE bookID = ?',
-        [bookID],
+        'SELECT * FROM transactions WHERE book_id = ?',
+        [book_id],
         (err, results) => {
-            if (err) return callback(err, null);
+            if (err) return callback(err);
             callback(null, results);
         }
     );
 }
 
+// Create transaction (Issue book)
 function createTransaction(transaction, callback) {
-    const { uid, bookID, issue_date, return_date, status } = transaction;
-    pool.query(
-        'INSERT INTO transactions (uid, bookID, issue_date, return_date, status) VALUES (?, ?, ?, ?, ?)',
-        [uid, bookID, issue_date, return_date, status],
-        (err, results) => {
-            if (err) return callback(err, null);
-            callback(null, results);
-        }  
-    );
-}
+    const { uid, book_id, issue_date, due_date, return_date, status } = transaction;
 
-function updateTransaction(transactionId, transaction, callback) {
-    const { uid, bookID, issue_date, return_date, status } = transaction;
     pool.query(
-        'UPDATE transactions SET uid = ?, bookID = ?, issue_date = ?, return_date = ?, status = ? WHERE transactionID = ?',
-        [uid, bookID, issue_date, return_date, status, transactionId],
+        `INSERT INTO transactions 
+        (uid, book_id, issue_date, due_date, return_date, status) 
+        VALUES (?, ?, ?, ?, ?, ?)`,
+        [uid, book_id, issue_date, due_date, return_date, status || 'BORROWED'],
         (err, results) => {
-            if (err) return callback(err, null);
+            if (err) return callback(err);
             callback(null, results);
         }
     );
 }
+
+// Update transaction (Return book / change status)
+function updateTransaction(transaction_id, transaction, callback) {
+    const { uid, book_id, issue_date, due_date, return_date, status } = transaction;
+
+    pool.query(
+        `UPDATE transactions 
+         SET uid = ?, book_id = ?, issue_date = ?, due_date = ?, return_date = ?, status = ?
+         WHERE transaction_id = ?`,
+        [uid, book_id, issue_date, due_date, return_date, status, transaction_id],
+        (err, results) => {
+            if (err) return callback(err);
+            callback(null, results);
+        }
+    );
+}
+
 
 module.exports = {
     getUserById,
