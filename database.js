@@ -196,7 +196,17 @@ function createTransaction(transaction, callback) {
     );
 }
 
-
+function updateTransaction(transactionId, transaction, callback) {
+    const { uid, bookID, issue_date, return_date, status } = transaction;
+    pool.query(
+        'UPDATE transactions SET uid = ?, bookID = ?, issue_date = ?, return_date = ?, status = ? WHERE transactionID = ?',
+        [uid, bookID, issue_date, return_date, status, transactionId],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
 
 module.exports = {
     getUserById,
