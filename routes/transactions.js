@@ -1,57 +1,76 @@
 const express = require('express');
 const router = express.Router();
 
-const{getTransactions, getTransactionsForUser, createTransaction, getTransactionsByBookId, updateTransaction } = require("../database");
+const {
+    getTransactions,
+    getTransactionsForUser,
+    getTransactionsByBookId,
+    createTransaction,
+    updateTransaction
+} = require('../database');
 
-
+// Get all transactions
 router.get('/', (req, res) => {
     getTransactions((err, transactions) => {
         if (err) {
-            return  res.status(500).send('Error fetching transactions');
+            return res.status(500).json({ error: 'Error fetching transactions' });
         }
         res.json(transactions);
     });
 });
 
+// Get transactions by BOOK ID
+router.get('/book/:book_id', (req, res) => {
+    const { book_id } = req.params;
+    getTransactionsByBookId(book_id, (err, transactions) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error fetching book transactions' });
+        }
+        res.json(transactions);
+    });
+});
+
+// Get transactions by USER ID
 router.get('/:uid', (req, res) => {
-    const uid = req.params.uid; 
+    const { uid } = req.params;
     getTransactionsForUser(uid, (err, transactions) => {
         if (err) {
-            return res.status(500).send('Error fetching transactions');
+            return res.status(500).json({ error: 'Error fetching user transactions' });
         }
         res.json(transactions);
     });
 });
 
-router.get('/book/:bookID', (req, res) => {
-    const bookID = req.params.bookID;
-    getTransactionsByBookId(bookID, (err, transactions) => {
-        if (err) {
-            return res.status(500).send('Error fetching transactions for the book');
-        }
-        res.json(transactions);
-    });
-});
-
+// Create transaction (Issue book)
 router.post('/', (req, res) => {
-    const { uid, bookID, issue_date, return_date, status } = req.body;
-    createTransaction({ uid, bookID, issue_date, return_date, status }, (err, result) => {
-        if (err) {
-            return res.status(500).send('Error creating transaction');
+    const { uid, book_id, issue_date, due_date, return_date, status } = req.body;
+
+    createTransaction(
+        { uid, book_id, issue_date, due_date, return_date, status },
+        (err) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error creating transaction' });
+            }
+            res.status(201).json({ message: 'Transaction created successfully' });
         }
-        res.status(201).send('Transaction created successfully');
-    });
+    );
 });
 
-router.put('/:transactionId', (req, res) => {
-    const transactionId = req.params.transactionId;
-    const { uid, bookID, issue_date, return_date, status } = req.body;
-    updateTransaction(transactionId, { uid, bookID, issue_date, return_date, status }, (err, result) => {
-        if (err) {
-            return res.status(500).send('Error updating transaction');
+// Update transaction (Return / status update)
+router.put('/:transaction_id', (req, res) => {
+    const { transaction_id } = req.params;
+    const { uid, book_id, issue_date, due_date, return_date, status } = req.body;
+
+    updateTransaction(
+        transaction_id,
+        { uid, book_id, issue_date, due_date, return_date, status },
+        (err) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error updating transaction' });
+            }
+            res.json({ message: 'Transaction updated successfully' });
         }
-        res.send('Transaction updated successfully');
-    });
+    );
 });
 
 module.exports = router;
