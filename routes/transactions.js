@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const{getTransactions, getTransactionsForUser, createTransaction, getTransactionsByBookId } = require("../database");
+const{getTransactions, getTransactionsForUser, createTransaction, getTransactionsByBookId, updateTransaction } = require("../database");
 
 
 router.get('/', (req, res) => {
@@ -43,6 +43,15 @@ router.post('/', (req, res) => {
     });
 });
 
-
+router.put('/:transactionId', (req, res) => {
+    const transactionId = req.params.transactionId;
+    const { uid, bookID, issue_date, return_date, status } = req.body;
+    updateTransaction(transactionId, { uid, bookID, issue_date, return_date, status }, (err, result) => {
+        if (err) {
+            return res.status(500).send('Error updating transaction');
+        }
+        res.send('Transaction updated successfully');
+    });
+});
 
 module.exports = router;
