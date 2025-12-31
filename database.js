@@ -327,6 +327,47 @@ function deleteCategory(categoryId, callback) {
     );
 }
 
+// FINES
+
+function getfines(callback)
+{
+    pool.query(
+        'SELECT * FROM fines',
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+function getfinesByUserId(uid, callback)
+{
+    pool.query(
+        'SELECT * FROM fines WHERE uid = ?',
+        [uid],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+function updateFine(fineId, fine, callback) {
+    const { uid, transaction_id, amount, status } = fine;
+    pool.query(
+        `UPDATE fines 
+         SET uid = ?, transaction_id = ?, amount = ?, status = ? 
+         WHERE fine_id = ?`,
+        [uid, transaction_id, amount, status, fineId],
+        (err, results) => {
+            if (err) return callback(err);
+            callback(null, results);
+        }
+    );
+}
+
+
+
 module.exports = {
     getUserById,
     getAllUsers,
@@ -348,5 +389,9 @@ module.exports = {
     deleteReservation,
     getCategories,
     createCategory,
-    deleteCategory
+    deleteCategory,
+    getfines,
+    getfinesByUserId,
+    updateFine
+    
 };
