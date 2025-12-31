@@ -292,6 +292,41 @@ function deleteReservation(reservationId, callback) {
     });
 }
 
+// Categoires
+
+function getCategories(callback) {
+    pool.query(
+        'SELECT * FROM categories',
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+function createCategory(category, callback) {
+    const { name, description } = category;
+    pool.query(
+        'INSERT INTO categories (name) VALUES (?)',
+        [name],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
+function deleteCategory(categoryId, callback) {
+    pool.query(
+        'DELETE FROM categories WHERE category_id = ?',
+        [categoryId],
+        (err, results) => {
+            if (err) return callback(err, null);
+            callback(null, results);
+        }
+    );
+}
+
 module.exports = {
     getUserById,
     getAllUsers,
@@ -310,5 +345,8 @@ module.exports = {
     updateTransaction,
     createReservation,
     getReservationsForUser,
-    deleteReservation
+    deleteReservation,
+    getCategories,
+    createCategory,
+    deleteCategory
 };
